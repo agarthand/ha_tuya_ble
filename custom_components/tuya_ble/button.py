@@ -175,6 +175,7 @@ mapping: dict[str, TuyaBLECategoryButtonMapping] = {
                     "xicdxood",  # Raycube K7 Pro+
                     "rlyxv7pe",  # A1 PRO MAX
                     "oyqux5vv",  # LA-01
+                    "hs21i377",  # Smart Cylinder Lock (LVD11_BK)
                 ],
                 [
                     # Raycube K7 Pro+, unclear if applicable to A1 PRO MAX
