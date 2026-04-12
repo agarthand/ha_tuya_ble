@@ -48,10 +48,7 @@
                 "name": "Unlock"
             },
             "bluetooth_unlock_alt": {
-                "name": "Unlock (000101)"
-            },
-            "bluetooth_unlock_alt2": {
-                "name": "Unlock (Zeroed Structure)"
+                "name": "Unlock (Anonymized Payload)"
             }
         },
         "number": {
