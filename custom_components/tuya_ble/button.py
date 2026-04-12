@@ -200,19 +200,27 @@ mapping: dict[str, TuyaBLECategoryButtonMapping] = {
                     ),
                 ),
                 TuyaBLEButtonMapping(
-                    dp_id=70,
+                    dp_id=71,
                     description=ButtonEntityDescription(
-                        key="ble_unlock_test_a",
+                        key="bluetooth_unlock",
+                        icon="mdi:lock-open-check-outline",
+                    ),
+                    dp_type=TuyaBLEDataPointType.DT_RAW,
+                ),
+                TuyaBLEButtonMapping(
+                    dp_id=71,
+                    description=ButtonEntityDescription(
+                        key="bluetooth_unlock_alt",
                         icon="mdi:lock-open-alert-outline",
                         entity_category=EntityCategory.DIAGNOSTIC,
                     ),
                     dp_type=TuyaBLEDataPointType.DT_RAW,
                 ),
                 TuyaBLEButtonMapping(
-                    dp_id=70,
+                    dp_id=71,
                     description=ButtonEntityDescription(
-                        key="ble_unlock_test_b",
-                        icon="mdi:lock-open-check-outline",
+                        key="bluetooth_unlock_alt2",
+                        icon="mdi:lock-question",
                         entity_category=EntityCategory.DIAGNOSTIC,
                     ),
                     dp_type=TuyaBLEDataPointType.DT_RAW,
@@ -271,31 +279,20 @@ class TuyaBLEButton(TuyaBLEEntity, ButtonEntity):
         self._mapping = mapping
 
     async def _run_hs21i377_ble_unlock_test(self, variant: str) -> None:
-        """Run experimental dp70 -> dp71 unlock sequence for hs21i377."""
-        if variant == "ble_unlock_test_a":
-            dp70_value = base64.b64decode("AAH//wAAAAAAAAAAAP//AA==")
+        """Run experimental dp71 unlock variants for hs21i377."""
+        if variant == "bluetooth_unlock":
             dp71_value = base64.b64decode("AAH//zY4NTgxNTYyAWnakt8AAA==")
+        elif variant == "bluetooth_unlock_alt":
+            dp71_value = b""
         else:
-            dp70_value = b""
-            dp71_value = base64.b64decode("AAH//zY4NTgxNTYyAWnakt8AAA==")
+            dp71_value = base64.b64decode("AAH//zY4NTgxNTYyAWnakt4AAA==")
 
         _LOGGER.warning(
-            "%s: hs21i377 running %s with dp70=%s dp71=%s",
+            "%s: hs21i377 running %s with dp71=%s",
             self._device.address,
             variant,
-            dp70_value.hex(),
             dp71_value.hex(),
         )
-
-        dp70 = self._device.datapoints.get_or_create(
-            70,
-            TuyaBLEDataPointType.DT_RAW,
-            b"",
-        )
-        if dp70:
-            await dp70.set_value(dp70_value)
-
-        await asyncio.sleep(0.5)
 
         dp71 = self._device.datapoints.get_or_create(
             71,
@@ -315,7 +312,11 @@ class TuyaBLEButton(TuyaBLEEntity, ButtonEntity):
             if self._mapping.description.key == "activate_lock":
                 initial_value = False
                 write_value = True
-            elif self._mapping.description.key in ("ble_unlock_test_a", "ble_unlock_test_b"):
+            elif self._mapping.description.key in (
+                "bluetooth_unlock",
+                "bluetooth_unlock_alt",
+                "bluetooth_unlock_alt2",
+            ):
                 self._hass.create_task(
                     self._run_hs21i377_ble_unlock_test(self._mapping.description.key)
                 )

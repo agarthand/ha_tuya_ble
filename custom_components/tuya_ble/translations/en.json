@@ -47,11 +47,14 @@
             "activate_lock": {
                 "name": "Activate lock"
             },
-            "ble_unlock_test_a": {
-                "name": "BLE unlock test A"
+            "bluetooth_unlock": {
+                "name": "Unlock"
             },
-            "ble_unlock_test_b": {
-                "name": "BLE unlock test B"
+            "bluetooth_unlock_alt": {
+                "name": "Unlock (Empty Payload)"
+            },
+            "bluetooth_unlock_alt2": {
+                "name": "Unlock (Mutated Payload)"
             }
         },
         "number": {
