@@ -46,6 +46,12 @@
             },
             "bluetooth_unlock": {
                 "name": "Unlock"
+            },
+            "bluetooth_unlock_alt": {
+                "name": "Unlock (Alt)"
+            },
+            "manual_lock_test": {
+                "name": "Engage motor test"
             }
         },
         "number": {

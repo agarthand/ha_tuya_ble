@@ -175,7 +175,6 @@ mapping: dict[str, TuyaBLECategoryButtonMapping] = {
                     "xicdxood",  # Raycube K7 Pro+
                     "rlyxv7pe",  # A1 PRO MAX
                     "oyqux5vv",  # LA-01
-                    "hs21i377",  # Smart Cylinder Lock (LVD11_BK)
                 ],
                 [
                     # Raycube K7 Pro+, unclear if applicable to A1 PRO MAX
@@ -189,7 +188,34 @@ mapping: dict[str, TuyaBLECategoryButtonMapping] = {
                         dp_type=TuyaBLEDataPointType.DT_RAW,
                     ),
                 ],
-            )
+            ),
+            "hs21i377": [
+                TuyaBLEButtonMapping(
+                    dp_id=71,
+                    description=ButtonEntityDescription(
+                        key="bluetooth_unlock",
+                        icon="mdi:lock-open-variant-outline",
+                    ),
+                    dp_type=TuyaBLEDataPointType.DT_RAW,
+                ),
+                TuyaBLEButtonMapping(
+                    dp_id=46,
+                    description=ButtonEntityDescription(
+                        key="manual_lock_test",
+                        icon="mdi:lock-check-outline",
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                    ),
+                ),
+                TuyaBLEButtonMapping(
+                    dp_id=71,
+                    description=ButtonEntityDescription(
+                        key="bluetooth_unlock_alt",
+                        icon="mdi:lock-open-check-outline",
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                    ),
+                    dp_type=TuyaBLEDataPointType.DT_RAW,
+                ),
+            ]
         },
     ),
     "ms": TuyaBLECategoryButtonMapping(
@@ -248,13 +274,22 @@ class TuyaBLEButton(TuyaBLEEntity, ButtonEntity):
         initial_value: bytes | bool = False
         write_value: bytes | bool
 
-        if (
-            self._device.product_id == "hs21i377"
-            and self._mapping.dp_id == 71
-            and dp_type == TuyaBLEDataPointType.DT_RAW
-        ):
-            initial_value = b""
-            write_value = b"\x01"
+        if self._device.product_id == "hs21i377":
+            if self._mapping.description.key == "manual_lock_test":
+                initial_value = False
+                write_value = True
+            elif (
+                self._mapping.dp_id == 71
+                and dp_type == TuyaBLEDataPointType.DT_RAW
+                and self._mapping.description.key == "bluetooth_unlock_alt"
+            ):
+                initial_value = b""
+                write_value = bytes.fromhex("000101")
+            elif self._mapping.dp_id == 71 and dp_type == TuyaBLEDataPointType.DT_RAW:
+                initial_value = b""
+                write_value = b"\x01"
+            else:
+                write_value = True
         else:
             write_value = True if self._product.lock else True
 
@@ -265,6 +300,8 @@ class TuyaBLEButton(TuyaBLEEntity, ButtonEntity):
         )
         if datapoint:
             if dp_type == TuyaBLEDataPointType.DT_RAW:
+                self._hass.create_task(datapoint.set_value(write_value))
+            elif self._device.product_id == "hs21i377":
                 self._hass.create_task(datapoint.set_value(write_value))
             elif self._product.lock:
                 # Lock needs true to activate lock/unlock commands
