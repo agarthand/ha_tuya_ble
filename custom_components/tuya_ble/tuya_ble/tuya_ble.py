@@ -63,7 +63,7 @@ from .manager import AbstaractTuyaBLEDeviceManager, TuyaBLEDeviceCredentials
 
 _LOGGER = logging.getLogger(__name__)
 
-HS21I377_DEBUG_DP_IDS = {12, 13, 15, 19, 20, 40, 46, 47, 69, 71}
+HS21I377_DEBUG_DP_IDS = {12, 13, 15, 19, 20, 40, 46, 47, 69, 70, 71}
 
 BLEAK_EXCEPTIONS = (*BLEAK_RETRY_EXCEPTIONS, OSError)
 

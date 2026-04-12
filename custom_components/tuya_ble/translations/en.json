@@ -46,6 +46,12 @@
             },
             "activate_lock": {
                 "name": "Activate lock"
+            },
+            "ble_unlock_test_a": {
+                "name": "BLE unlock test A"
+            },
+            "ble_unlock_test_b": {
+                "name": "BLE unlock test B"
             }
         },
         "number": {

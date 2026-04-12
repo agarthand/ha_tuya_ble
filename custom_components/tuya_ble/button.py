@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+import asyncio
+import base64
 import logging
 from typing import Callable
 
@@ -197,6 +199,24 @@ mapping: dict[str, TuyaBLECategoryButtonMapping] = {
                         icon="mdi:lock-check-outline",
                     ),
                 ),
+                TuyaBLEButtonMapping(
+                    dp_id=70,
+                    description=ButtonEntityDescription(
+                        key="ble_unlock_test_a",
+                        icon="mdi:lock-open-alert-outline",
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                    ),
+                    dp_type=TuyaBLEDataPointType.DT_RAW,
+                ),
+                TuyaBLEButtonMapping(
+                    dp_id=70,
+                    description=ButtonEntityDescription(
+                        key="ble_unlock_test_b",
+                        icon="mdi:lock-open-check-outline",
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                    ),
+                    dp_type=TuyaBLEDataPointType.DT_RAW,
+                ),
             ]
         },
     ),
@@ -250,6 +270,41 @@ class TuyaBLEButton(TuyaBLEEntity, ButtonEntity):
         super().__init__(hass, coordinator, device, product, mapping.description)
         self._mapping = mapping
 
+    async def _run_hs21i377_ble_unlock_test(self, variant: str) -> None:
+        """Run experimental dp70 -> dp71 unlock sequence for hs21i377."""
+        if variant == "ble_unlock_test_a":
+            dp70_value = base64.b64decode("AAH//wAAAAAAAAAAAP//AA==")
+            dp71_value = base64.b64decode("AAH//zY4NTgxNTYyAWnakt8AAA==")
+        else:
+            dp70_value = b""
+            dp71_value = base64.b64decode("AAH//zY4NTgxNTYyAWnakt8AAA==")
+
+        _LOGGER.warning(
+            "%s: hs21i377 running %s with dp70=%s dp71=%s",
+            self._device.address,
+            variant,
+            dp70_value.hex(),
+            dp71_value.hex(),
+        )
+
+        dp70 = self._device.datapoints.get_or_create(
+            70,
+            TuyaBLEDataPointType.DT_RAW,
+            b"",
+        )
+        if dp70:
+            await dp70.set_value(dp70_value)
+
+        await asyncio.sleep(0.5)
+
+        dp71 = self._device.datapoints.get_or_create(
+            71,
+            TuyaBLEDataPointType.DT_RAW,
+            b"",
+        )
+        if dp71:
+            await dp71.set_value(dp71_value)
+
     def press(self) -> None:
         """Press the button."""
         dp_type = self._mapping.dp_type or TuyaBLEDataPointType.DT_BOOL
@@ -260,6 +315,11 @@ class TuyaBLEButton(TuyaBLEEntity, ButtonEntity):
             if self._mapping.description.key == "activate_lock":
                 initial_value = False
                 write_value = True
+            elif self._mapping.description.key in ("ble_unlock_test_a", "ble_unlock_test_b"):
+                self._hass.create_task(
+                    self._run_hs21i377_ble_unlock_test(self._mapping.description.key)
+                )
+                return
             else:
                 write_value = True
         else:
