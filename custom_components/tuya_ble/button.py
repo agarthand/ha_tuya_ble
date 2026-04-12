@@ -200,15 +200,6 @@ mapping: dict[str, TuyaBLECategoryButtonMapping] = {
                     ),
                     dp_type=TuyaBLEDataPointType.DT_RAW,
                 ),
-                TuyaBLEButtonMapping(
-                    dp_id=71,
-                    description=ButtonEntityDescription(
-                        key="bluetooth_unlock_alt",
-                        icon="mdi:lock-open-alert-outline",
-                        entity_category=EntityCategory.DIAGNOSTIC,
-                    ),
-                    dp_type=TuyaBLEDataPointType.DT_RAW,
-                ),
             ]
         },
     ),
@@ -262,19 +253,14 @@ class TuyaBLEButton(TuyaBLEEntity, ButtonEntity):
         super().__init__(hass, coordinator, device, product, mapping.description)
         self._mapping = mapping
 
-    async def _run_hs21i377_ble_unlock_test(self, variant: str) -> None:
-        """Run experimental dp71 unlock variants for hs21i377."""
-        if variant == "bluetooth_unlock":
-            dp71_value = base64.b64decode("AAH//zY4NTgxNTYyAWnakt8AAA==")
-        else:
-            dp71_value = bytes.fromhex("0001ffff36383538313536320169ab34cd0000")
-
-        _LOGGER.warning(
-            "%s: hs21i377 running %s with dp71=%s",
-            self._device.address,
-            variant,
-            dp71_value.hex(),
-        )
+    async def _run_hs21i377_unlock(self) -> None:
+        """Run the validated dp71 unlock flow for hs21i377."""
+        # hs21i377 uses a device-specific dp71 unlock payload.
+        # Practical testing confirmed multiple payload variants can unlock,
+        # so this is not treated as a fixed "known lock code". We keep an
+        # empirically validated value here until the payload semantics are
+        # understood better.
+        dp71_value = bytes.fromhex("0001ffff36383538313536320169ab34cd0000")
 
         dp71 = self._device.datapoints.get_or_create(
             71,
@@ -291,13 +277,8 @@ class TuyaBLEButton(TuyaBLEEntity, ButtonEntity):
         write_value: bytes | bool
 
         if self._device.product_id == "hs21i377":
-            if self._mapping.description.key in (
-                "bluetooth_unlock",
-                "bluetooth_unlock_alt",
-            ):
-                self._hass.create_task(
-                    self._run_hs21i377_ble_unlock_test(self._mapping.description.key)
-                )
+            if self._mapping.description.key == "bluetooth_unlock":
+                self._hass.create_task(self._run_hs21i377_unlock())
                 return
             else:
                 write_value = True

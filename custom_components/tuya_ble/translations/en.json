@@ -46,9 +46,6 @@
             },
             "bluetooth_unlock": {
                 "name": "Unlock"
-            },
-            "bluetooth_unlock_alt": {
-                "name": "Unlock (Anonymized Payload)"
             }
         },
         "number": {
