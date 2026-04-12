@@ -191,29 +191,11 @@ mapping: dict[str, TuyaBLECategoryButtonMapping] = {
             ),
             "hs21i377": [
                 TuyaBLEButtonMapping(
-                    dp_id=71,
-                    description=ButtonEntityDescription(
-                        key="bluetooth_unlock",
-                        icon="mdi:lock-open-variant-outline",
-                    ),
-                    dp_type=TuyaBLEDataPointType.DT_RAW,
-                ),
-                TuyaBLEButtonMapping(
                     dp_id=46,
                     description=ButtonEntityDescription(
-                        key="manual_lock_test",
+                        key="activate_lock",
                         icon="mdi:lock-check-outline",
-                        entity_category=EntityCategory.DIAGNOSTIC,
                     ),
-                ),
-                TuyaBLEButtonMapping(
-                    dp_id=71,
-                    description=ButtonEntityDescription(
-                        key="bluetooth_unlock_alt",
-                        icon="mdi:lock-open-check-outline",
-                        entity_category=EntityCategory.DIAGNOSTIC,
-                    ),
-                    dp_type=TuyaBLEDataPointType.DT_RAW,
                 ),
             ]
         },
@@ -275,19 +257,9 @@ class TuyaBLEButton(TuyaBLEEntity, ButtonEntity):
         write_value: bytes | bool
 
         if self._device.product_id == "hs21i377":
-            if self._mapping.description.key == "manual_lock_test":
+            if self._mapping.description.key == "activate_lock":
                 initial_value = False
                 write_value = True
-            elif (
-                self._mapping.dp_id == 71
-                and dp_type == TuyaBLEDataPointType.DT_RAW
-                and self._mapping.description.key == "bluetooth_unlock_alt"
-            ):
-                initial_value = b""
-                write_value = bytes.fromhex("000101")
-            elif self._mapping.dp_id == 71 and dp_type == TuyaBLEDataPointType.DT_RAW:
-                initial_value = b""
-                write_value = b"\x01"
             else:
                 write_value = True
         else:
