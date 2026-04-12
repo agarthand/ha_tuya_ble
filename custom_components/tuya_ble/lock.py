@@ -98,77 +98,58 @@ class TuyaBLELock(TuyaBLEEntity, LockEntity):
     @property
     def is_locked(self) -> bool | None:
         """Return true if lock is locked."""
+        motor_state_dp_id = self.find_dpid(DPCode.LOCK_MOTOR_STATE)
+        if motor_state_dp_id is None:
+            return None
         if motor_state := self._device.datapoints.get_or_create(
-            DPCode.LOCK_MOTOR_STATE, TuyaBLEDataPointType.DT_BOOL, False
+            motor_state_dp_id, TuyaBLEDataPointType.DT_BOOL, False
         ):
             return not motor_state.value
         return None
 
-    async def async_lock(self, **kwargs: Any) -> None:
-        """Lock the lock."""
-        self._debug_log_lock_dp_state("before_lock")
+    async def _write_manual_lock(self, value: bool, context: str) -> None:
+        """Write manual lock using the resolved numeric datapoint id."""
+        self._debug_log_lock_dp_state(f"before_{context}")
+        manual_lock_dp_id = self.find_dpid(DPCode.MANUAL_LOCK)
+        if manual_lock_dp_id is None:
+            _LOGGER.warning(
+                "%s: hs21i377 lock command [%s] skipped: manual_lock dp not found",
+                self._device.address,
+                context,
+            )
+            return
+
         if manual_lock := self._device.datapoints.get_or_create(
-            DPCode.MANUAL_LOCK, TuyaBLEDataPointType.DT_BOOL, True
+            manual_lock_dp_id, TuyaBLEDataPointType.DT_BOOL, value
         ):
             _LOGGER.warning(
-                "%s: hs21i377 lock command [lock]: dpid=%s, created_type=%s, value=%s",
+                "%s: hs21i377 lock command [%s]: dpid=%s, created_type=%s, value=%s",
                 self._device.address,
+                context,
                 manual_lock.id,
                 manual_lock.type.name,
-                True,
+                value,
             )
             try:
-                await manual_lock.set_value(True)
+                await manual_lock.set_value(value)
             except Exception:
                 _LOGGER.exception(
-                    "%s: hs21i377 lock command [lock] failed", self._device.address
+                    "%s: hs21i377 lock command [%s] failed",
+                    self._device.address,
+                    context,
                 )
-                self._debug_log_lock_dp_state("lock_exception")
+                self._debug_log_lock_dp_state(f"{context}_exception")
                 raise
-        self._debug_log_lock_dp_state("after_lock")
+        self._debug_log_lock_dp_state(f"after_{context}")
+
+    async def async_lock(self, **kwargs: Any) -> None:
+        """Lock the lock."""
+        await self._write_manual_lock(True, "lock")
 
     async def async_unlock(self, **kwargs: Any) -> None:
         """Unlock the lock."""
-        self._debug_log_lock_dp_state("before_unlock")
-        if manual_lock := self._device.datapoints.get_or_create(
-            DPCode.MANUAL_LOCK, TuyaBLEDataPointType.DT_BOOL, False
-        ):
-            _LOGGER.warning(
-                "%s: hs21i377 lock command [unlock]: dpid=%s, created_type=%s, value=%s",
-                self._device.address,
-                manual_lock.id,
-                manual_lock.type.name,
-                False,
-            )
-            try:
-                await manual_lock.set_value(False)
-            except Exception:
-                _LOGGER.exception(
-                    "%s: hs21i377 lock command [unlock] failed", self._device.address
-                )
-                self._debug_log_lock_dp_state("unlock_exception")
-                raise
-        self._debug_log_lock_dp_state("after_unlock")
+        await self._write_manual_lock(False, "unlock")
 
     async def async_open(self, **kwargs: Any) -> None:
         """Open the covering."""
-        self._debug_log_lock_dp_state("before_open")
-        if manual_lock := self._device.datapoints.get_or_create(
-            DPCode.MANUAL_LOCK, TuyaBLEDataPointType.DT_BOOL, False
-        ):
-            _LOGGER.warning(
-                "%s: hs21i377 lock command [open]: dpid=%s, created_type=%s, value=%s",
-                self._device.address,
-                manual_lock.id,
-                manual_lock.type.name,
-                False,
-            )
-            try:
-                await manual_lock.set_value(False)
-            except Exception:
-                _LOGGER.exception(
-                    "%s: hs21i377 lock command [open] failed", self._device.address
-                )
-                self._debug_log_lock_dp_state("open_exception")
-                raise
-        self._debug_log_lock_dp_state("after_open")
+        await self._write_manual_lock(False, "open")

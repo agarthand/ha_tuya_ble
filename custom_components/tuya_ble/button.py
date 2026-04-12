@@ -186,6 +186,7 @@ mapping: dict[str, TuyaBLECategoryButtonMapping] = {
                             key="bluetooth_unlock",
                             icon="mdi:lock-open-variant-outline",
                         ),
+                        dp_type=TuyaBLEDataPointType.DT_RAW,
                     ),
                 ],
             )
@@ -243,13 +244,29 @@ class TuyaBLEButton(TuyaBLEEntity, ButtonEntity):
 
     def press(self) -> None:
         """Press the button."""
+        dp_type = self._mapping.dp_type or TuyaBLEDataPointType.DT_BOOL
+        initial_value: bytes | bool = False
+        write_value: bytes | bool
+
+        if (
+            self._device.product_id == "hs21i377"
+            and self._mapping.dp_id == 71
+            and dp_type == TuyaBLEDataPointType.DT_RAW
+        ):
+            initial_value = b""
+            write_value = b"\x01"
+        else:
+            write_value = True if self._product.lock else True
+
         datapoint = self._device.datapoints.get_or_create(
             self._mapping.dp_id,
-            TuyaBLEDataPointType.DT_BOOL,
-            False,
+            dp_type,
+            initial_value,
         )
         if datapoint:
-            if self._product.lock:
+            if dp_type == TuyaBLEDataPointType.DT_RAW:
+                self._hass.create_task(datapoint.set_value(write_value))
+            elif self._product.lock:
                 # Lock needs true to activate lock/unlock commands
                 self._hass.create_task(datapoint.set_value(True))
             else:
