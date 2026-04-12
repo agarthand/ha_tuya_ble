@@ -193,13 +193,6 @@ mapping: dict[str, TuyaBLECategoryButtonMapping] = {
             ),
             "hs21i377": [
                 TuyaBLEButtonMapping(
-                    dp_id=46,
-                    description=ButtonEntityDescription(
-                        key="activate_lock",
-                        icon="mdi:lock-check-outline",
-                    ),
-                ),
-                TuyaBLEButtonMapping(
                     dp_id=71,
                     description=ButtonEntityDescription(
                         key="bluetooth_unlock",
@@ -283,9 +276,9 @@ class TuyaBLEButton(TuyaBLEEntity, ButtonEntity):
         if variant == "bluetooth_unlock":
             dp71_value = base64.b64decode("AAH//zY4NTgxNTYyAWnakt8AAA==")
         elif variant == "bluetooth_unlock_alt":
-            dp71_value = b""
+            dp71_value = bytes.fromhex("000101")
         else:
-            dp71_value = base64.b64decode("AAH//zY4NTgxNTYyAWnakt4AAA==")
+            dp71_value = bytes.fromhex("0001ffff000000000000000000000000")
 
         _LOGGER.warning(
             "%s: hs21i377 running %s with dp71=%s",
@@ -309,10 +302,7 @@ class TuyaBLEButton(TuyaBLEEntity, ButtonEntity):
         write_value: bytes | bool
 
         if self._device.product_id == "hs21i377":
-            if self._mapping.description.key == "activate_lock":
-                initial_value = False
-                write_value = True
-            elif self._mapping.description.key in (
+            if self._mapping.description.key in (
                 "bluetooth_unlock",
                 "bluetooth_unlock_alt",
                 "bluetooth_unlock_alt2",

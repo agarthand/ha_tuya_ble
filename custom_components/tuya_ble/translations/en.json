@@ -44,17 +44,14 @@
             "ble_unlock_check": {
                 "name": "Unlock"
             },
-            "activate_lock": {
-                "name": "Activate lock"
-            },
             "bluetooth_unlock": {
                 "name": "Unlock"
             },
             "bluetooth_unlock_alt": {
-                "name": "Unlock (Empty Payload)"
+                "name": "Unlock (000101)"
             },
             "bluetooth_unlock_alt2": {
-                "name": "Unlock (Mutated Payload)"
+                "name": "Unlock (Zeroed Structure)"
             }
         },
         "number": {
