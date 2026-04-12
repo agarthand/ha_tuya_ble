@@ -267,7 +267,7 @@ class TuyaBLEButton(TuyaBLEEntity, ButtonEntity):
         if variant == "bluetooth_unlock":
             dp71_value = base64.b64decode("AAH//zY4NTgxNTYyAWnakt8AAA==")
         else:
-            dp71_value = base64.b64decode("AAH//zAwMDAwMDAwAQAAAAAAAA==")
+            dp71_value = base64.b64decode("AAH//zY4NTgxNTYyAWnakt4AAA==")
 
         _LOGGER.warning(
             "%s: hs21i377 running %s with dp71=%s",
