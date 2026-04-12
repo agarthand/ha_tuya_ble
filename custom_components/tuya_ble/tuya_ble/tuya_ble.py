@@ -63,6 +63,7 @@ from .manager import AbstaractTuyaBLEDeviceManager, TuyaBLEDeviceCredentials
 
 _LOGGER = logging.getLogger(__name__)
 
+HS21I377_DEBUG_DP_IDS = {12, 13, 15, 19, 20, 40, 46, 47, 69, 71}
 
 BLEAK_EXCEPTIONS = (*BLEAK_RETRY_EXCEPTIONS, OSError)
 
@@ -1211,6 +1212,18 @@ class TuyaBLEDevice:
                 type.name,
                 value,
             )
+            if self.product_id == "hs21i377" and id in HS21I377_DEBUG_DP_IDS:
+                if isinstance(value, bytes):
+                    value_repr = value.hex()
+                else:
+                    value_repr = repr(value)
+                _LOGGER.warning(
+                    "%s: hs21i377 received dp update: id=%s type=%s value=%s",
+                    self.address,
+                    id,
+                    type.name,
+                    value_repr,
+                )
             self._datapoints._update_from_device(id, timestamp, flags, type, value)
             datapoints.append(self._datapoints[id])
             pos = next_pos
