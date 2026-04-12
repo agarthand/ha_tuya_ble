@@ -241,16 +241,6 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
             "a6nttc41": [TuyaLockMotorStateMapping(dp_id=33)],
         }
     ),
-    "jtmspro": TuyaBLECategorySwitchMapping(
-        products={
-            "hs21i377": [
-                TuyaBLESwitchMapping(
-                    dp_id=46,
-                    description=SwitchEntityDescription(key="manual_lock"),
-                ),
-            ],
-        },
-    ),
     "szjqr": TuyaBLECategorySwitchMapping(
         products={
             **dict.fromkeys(
