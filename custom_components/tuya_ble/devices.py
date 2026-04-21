@@ -20,6 +20,15 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
 )
 
+from homeassistant.components.tuya.const import (
+    DPCode,
+)
+
+from tuya_device_handlers.const import (
+    DPType,
+)
+
+
 from home_assistant_bluetooth import BluetoothServiceInfoBleak
 from .tuya_ble import (
     AbstaractTuyaBLEDeviceManager,
@@ -398,7 +407,6 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
             "ebd5e0uauqx0vfsp": TuyaBLEProductInfo(name="CentralAcesso"),
             "ajk32biq": TuyaBLEProductInfo(name="B16", lock=1),
             "z7lj676i": TuyaBLEProductInfo(name="Smart Cylinder Lock", lock=1),
-            "hs21i377": TuyaBLEProductInfo(name="Smart Cylinder Lock"),
         },
     ),
     "szjqr": TuyaBLECategoryInfo(
